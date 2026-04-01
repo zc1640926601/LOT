@@ -2,189 +2,202 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>智能家居控制中心 - 华为云IoTDA</title>
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
         }
         body {
-            background: #f0f4f8;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
             margin: 0;
             padding: 20px;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
         }
         .card {
-            max-width: 600px;
+            max-width: 500px;
             width: 100%;
-            background: white;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(2px);
             border-radius: 32px;
-            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.15);
             overflow: hidden;
-            padding: 24px 20px 32px;
+            padding: 20px 24px 32px;
             transition: all 0.2s;
         }
         h1 {
             font-size: 1.8rem;
-            font-weight: 600;
             margin: 0 0 8px 0;
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .sub {
-            color: #5a6e8a;
-            border-left: 3px solid #2a6df4;
-            padding-left: 12px;
-            margin: 8px 0 20px 0;
-            font-size: 0.85rem;
-        }
-        .status-badge {
-            background: #eef2ff;
-            border-radius: 40px;
-            padding: 6px 14px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            display: inline-flex;
+            color: #1e2a3e;
+            display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 20px;
         }
-        .led {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
+        h1 small {
+            font-size: 0.8rem;
+            background: #eef2ff;
+            color: #3b82f6;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-weight: normal;
         }
-        .led-green { background: #22c55e; box-shadow: 0 0 4px #22c55e; }
-        .led-red   { background: #ef4444; }
+        .sub {
+            color: #5b6e8c;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            border-left: 3px solid #3b82f6;
+            padding-left: 12px;
+        }
         .sensor-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 16px;
-            background: #f8fafc;
-            border-radius: 28px;
-            padding: 18px 16px;
-            margin: 20px 0;
+            margin-bottom: 28px;
         }
         .sensor-item {
-            text-align: center;
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 14px 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            transition: 0.1s;
         }
         .sensor-label {
             font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-            color: #4b5563;
+            letter-spacing: 0.5px;
+            color: #4a5b7a;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .sensor-value {
             font-size: 1.8rem;
-            font-weight: 700;
+            font-weight: 600;
             color: #0f172a;
             line-height: 1.2;
         }
         .unit {
-            font-size: 0.8rem;
-            font-weight: 400;
-            color: #5e6f8d;
+            font-size: 0.9rem;
+            font-weight: normal;
+            color: #5b6e8c;
+        }
+        .status-badge {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
         .control-group {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            padding: 16px;
-            margin: 18px 0;
+            background: #ffffff;
+            border-radius: 28px;
+            margin-bottom: 20px;
+            padding: 8px 0;
+            border: 1px solid #eef2f6;
         }
         .control-title {
             font-weight: 600;
-            margin-bottom: 12px;
+            padding: 12px 20px 6px;
+            color: #1e2a3e;
             display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #1e293b;
+            justify-content: space-between;
         }
-        .btn-group {
+        .button-group {
             display: flex;
             gap: 12px;
+            padding: 8px 20px 20px;
             flex-wrap: wrap;
         }
-        button {
-            background: #f1f5f9;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 60px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #1e293b;
+        .btn {
             flex: 1;
-            min-width: 80px;
-        }
-        button.primary {
-            background: #2a6df4;
-            color: white;
-            box-shadow: 0 2px 6px rgba(42,109,244,0.3);
-        }
-        button.primary:hover {
-            background: #1e56c0;
-            transform: translateY(-1px);
-        }
-        button.danger {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-        button.warning {
-            background: #ffedd5;
-            color: #b45309;
-        }
-        button.active {
-            background: #2a6df4;
-            color: white;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3);
-        }
-        .footer-note {
-            font-size: 0.7rem;
-            text-align: center;
-            color: #6c7a91;
-            margin-top: 24px;
-            border-top: 1px solid #eef2ff;
-            padding-top: 16px;
-        }
-        .mqtt-status {
-            font-size: 0.75rem;
             background: #f1f5f9;
-            border-radius: 20px;
-            padding: 6px 12px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        hr {
             border: none;
-            border-top: 1px solid #eef2ff;
-            margin: 12px 0;
+            padding: 12px 8px;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e2a3e;
+            cursor: pointer;
+            transition: 0.15s;
+            text-align: center;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 6px rgba(59,130,246,0.2);
+        }
+        .btn-primary:active {
+            background: #2563eb;
+            transform: scale(0.97);
+        }
+        .btn-warning {
+            background: #f97316;
+            color: white;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .status-led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .online {
+            background: #10b981;
+            box-shadow: 0 0 0 2px rgba(16,185,129,0.3);
+        }
+        .offline {
+            background: #94a3b8;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #7e8aa2;
+            margin-top: 24px;
+            border-top: 1px solid #eef2f6;
+            padding-top: 18px;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: 0.2s;
+            pointer-events: none;
+            z-index: 1000;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 </head>
 <body>
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>🏠 智慧家居</h1>
-        <div class="mqtt-status" id="mqttStatusBox">
-            <span class="led led-red" id="mqttLed"></span>
-            <span id="mqttText">连接中...</span>
-        </div>
+<div class="card" id="app">
+    <h1>🏠 智能家居 <small>华为云IoTDA</small></h1>
+    <div class="sub">
+        <span class="status-led" id="connStatusLed"></span>
+        <span id="connStatusText">连接中...</span>
     </div>
-    <div class="sub">华为云IoTDA · 实时联动 | 远程控制</div>
 
-    <!-- 传感器数据面板 -->
+    <!-- 传感器数据 -->
     <div class="sensor-grid">
         <div class="sensor-item">
             <div class="sensor-label">🌡️ 温度</div>
@@ -192,11 +205,11 @@
         </div>
         <div class="sensor-item">
             <div class="sensor-label">💧 湿度</div>
-            <div class="sensor-value"><span id="humi">--</span><span class="unit">%</span></div>
+            <div class="sensor-value"><span id="hum">--</span><span class="unit">%</span></div>
         </div>
         <div class="sensor-item">
             <div class="sensor-label">🌱 土壤湿度</div>
-            <div class="sensor-value"><span id="soil">--</span></div>
+            <div class="sensor-value"><span id="soil">--</span><span class="unit"></span></div>
         </div>
         <div class="sensor-item">
             <div class="sensor-label">🚶 人体红外</div>
@@ -204,251 +217,228 @@
         </div>
     </div>
 
-    <!-- 设备状态区 -->
-    <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 16px;">
-        <div style="background:#eef2ff; border-radius: 20px; padding: 6px 12px; font-size:0.8rem; flex:1; text-align:center">
-            💡 灯模式：<strong id="lightStatusDisplay">--</strong>
-        </div>
-        <div style="background:#eef2ff; border-radius: 20px; padding: 6px 12px; font-size:0.8rem; flex:1; text-align:center">
-            🚨 报警：<strong id="alarmDisplay">--</strong>
-        </div>
-        <div style="background:#eef2ff; border-radius: 20px; padding: 6px 12px; font-size:0.8rem; flex:1; text-align:center">
-            ⚙️ 系统：<strong id="systemDisplay">--</strong>
-        </div>
-    </div>
-
-    <!-- 灯控制 -->
+    <!-- 灯模式控制 -->
     <div class="control-group">
-        <div class="control-title">💡 灯光控制</div>
-        <div class="btn-group">
-            <button id="btnLightOff" class="">关闭</button>
-            <button id="btnLightOn" class="">常亮</button>
-            <button id="btnLightBlink" class="">闪烁</button>
+        <div class="control-title">
+            💡 灯光模式
+            <span id="lightStatusBadge" class="status-badge">未知</span>
+        </div>
+        <div class="button-group">
+            <button class="btn" data-light="0">关闭</button>
+            <button class="btn" data-light="1">常亮</button>
+            <button class="btn" data-light="2">闪烁</button>
         </div>
     </div>
 
-    <!-- 报警与系统总开关 -->
+    <!-- 报警开关 -->
     <div class="control-group">
-        <div class="control-title">🔔 安防联动</div>
-        <div class="btn-group">
-            <button id="btnAlarmOff" class="danger">报警关闭</button>
-            <button id="btnAlarmOn" class="primary">报警开启</button>
+        <div class="control-title">
+            🔔 报警开关
+            <span id="alarmBadge" class="status-badge">未知</span>
         </div>
-        <div class="control-title" style="margin-top: 12px;">🖥️ 系统总控</div>
-        <div class="btn-group">
-            <button id="btnSystemOff" class="danger">系统停用</button>
-            <button id="btnSystemOn" class="primary">系统启用</button>
+        <div class="button-group">
+            <button class="btn" data-alarm="0">关闭报警</button>
+            <button class="btn btn-warning" data-alarm="1">开启报警</button>
         </div>
     </div>
 
-    <div class="footer-note">
-        ⚡ 数据实时上报 | 指令通过华为云下发 | 支持灯模式/报警/系统联动
+    <!-- 系统总开关 -->
+    <div class="control-group">
+        <div class="control-title">
+            ⚙️ 系统总开关
+            <span id="systemBadge" class="status-badge">未知</span>
+        </div>
+        <div class="button-group">
+            <button class="btn" data-system="0">关闭系统</button>
+            <button class="btn btn-primary" data-system="1">开启系统</button>
+        </div>
     </div>
+
+    <footer>
+        🌟 数据每5秒自动刷新 · 通过华为云API下发指令
+    </footer>
 </div>
+<div id="toast" class="toast">操作成功</div>
 
 <script>
-    // ====================== 华为云IoTDA WebSocket配置 ======================
-    // 根据ESP32代码中的实际参数填写（与设备端保持一致）
-    const HOST = "f2f97ae2cc.st1.iotda-device.cn-north-4.myhuaweicloud.com";   // 华为云IoTDA接入地址
-    const PORT = 443;                     // WebSocket默认端口
-    const PATH = "/mqtt";                // 华为云MQTT over WebSocket路径
-    
-    // 设备凭证（与ESP32端完全一致）
-    const DEVICE_ID = "69a7d565cbb0cf6bb943b9b9_ZHANG";
-    const USERNAME = "69a7d565cbb0cf6bb943b9b9_ZHANG";
-    const PASSWORD = "609b3e6e6e849cbfa47fa244db42cf4fcad82c7bb6fb3fcb0fa5ebc2f7d16d43";
-    
-    // ClientId格式: 设备ID_0_0_时间戳
-    const CLIENT_ID = "69a7d565cbb0cf6bb943b9b9_ZHANG_0_1_2026040103";
-    
-    // Topic定义（必须与ESP32订阅/发布的主题一致）
-    const PROPERTY_REPORT_TOPIC = `$oc/devices/${DEVICE_ID}/sys/properties/report`;    // 设备上报数据
-    const MESSAGES_DOWN_TOPIC   = `$oc/devices/${DEVICE_ID}/sys/messages/down`;        // 消息下发（控制指令）
-    const COMMANDS_SUB_TOPIC    = `$oc/devices/${DEVICE_ID}/sys/commands/#`;            // 可选订阅（用于调试）
-    
-    // MQTT over WebSocket URL (wss)
-    const MQTT_URL = `wss://${HOST}:${PORT}${PATH}`;
-    
-    // 全局MQTT客户端
-    let mqttClient = null;
-    
-    // DOM元素绑定
-    const tempSpan = document.getElementById("temp");
-    const humiSpan = document.getElementById("humi");
-    const soilSpan = document.getElementById("soil");
-    const motionSpan = document.getElementById("motion");
-    const lightStatusSpan = document.getElementById("lightStatusDisplay");
-    const alarmDisplaySpan = document.getElementById("alarmDisplay");
-    const systemDisplaySpan = document.getElementById("systemDisplay");
-    
-    const mqttLed = document.getElementById("mqttLed");
-    const mqttTextSpan = document.getElementById("mqttText");
-    
-    // 按钮
-    const btnLightOff = document.getElementById("btnLightOff");
-    const btnLightOn = document.getElementById("btnLightOn");
-    const btnLightBlink = document.getElementById("btnLightBlink");
-    const btnAlarmOff = document.getElementById("btnAlarmOff");
-    const btnAlarmOn = document.getElementById("btnAlarmOn");
-    const btnSystemOff = document.getElementById("btnSystemOff");
-    const btnSystemOn = document.getElementById("btnSystemOn");
-    
-    // 辅助函数：更新MQTT状态UI
-    function updateMqttStatus(connected) {
-        if (connected) {
-            mqttLed.className = "led led-green";
-            mqttTextSpan.innerText = "已连接";
-        } else {
-            mqttLed.className = "led led-red";
-            mqttTextSpan.innerText = "断开";
-        }
+    // ========== 华为云配置（已替换为您提供的凭证） ==========
+    const CONFIG = {
+        region: 'cn-north-4',
+        projectId: '59acabce9316451790920d7851e659cb',
+        deviceId: '69a7d565cbb0cf6bb943b9b9_ZHANG',   // 与 ESP32 代码保持一致
+        ak: 'HPUAPIWV8PIYEF7BI7EH',
+        sk: 'eCXGlgyPEDX7K0AzkS6essxSGCGSFqc5dcz0nzL4'
+    };
+
+    // 动态构建 API 基础地址
+    CONFIG.iotEndpoint = `https://iotda.${CONFIG.region}.myhuaweicloud.com/v5/iot/${CONFIG.projectId}/devices/${CONFIG.deviceId}`;
+
+    // ========== 华为云 API 签名工具 (AK/SK) ==========
+    function hmacSha256(key, data) {
+        return CryptoJS.HmacSHA256(data, key).toString(CryptoJS.enc.Hex);
     }
-    
-    // 解析设备上报的JSON数据并更新UI
-    function parseAndUpdateReport(payload) {
+
+    function sha256(data) {
+        return CryptoJS.SHA256(data).toString(CryptoJS.enc.Hex);
+    }
+
+    function buildCanonicalRequest(method, uri, queryParams, headers, body) {
+        let canonicalHeaders = '';
+        const signedHeaders = [];
+        for (const [k, v] of Object.entries(headers)) {
+            const lowerKey = k.toLowerCase();
+            canonicalHeaders += `${lowerKey}:${v.trim()}\n`;
+            signedHeaders.push(lowerKey);
+        }
+        const signedHeadersStr = signedHeaders.join(';');
+        const payloadHash = sha256(body || '');
+        return `${method}\n${uri}\n${queryParams}\n${canonicalHeaders}\n${signedHeadersStr}\n${payloadHash}`;
+    }
+
+    function buildStringToSign(algorithm, canonicalRequest, timestamp) {
+        return `${algorithm}\n${timestamp}\n${sha256(canonicalRequest)}`;
+    }
+
+    async function callHuaweiAPI(method, path, body = null) {
+        const timestamp = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+        const uri = path;
+        const queryParams = '';
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-Sdk-Date': timestamp,
+            'Host': new URL(CONFIG.iotEndpoint).host
+        };
+        if (body) headers['Content-Length'] = Buffer.byteLength(body);
+
+        const canonicalRequest = buildCanonicalRequest(method, uri, queryParams, headers, body || '');
+        const algorithm = 'SDK-HMAC-SHA256';
+        const stringToSign = buildStringToSign(algorithm, canonicalRequest, timestamp);
+        const signingKey = CONFIG.sk;
+        const signature = hmacSha256(signingKey, stringToSign);
+        headers['Authorization'] = `${algorithm} Access=${CONFIG.ak}, SignedHeaders=content-type;host;x-sdk-date, Signature=${signature}`;
+
+        const url = `${CONFIG.iotEndpoint}${path}`;
+        const response = await fetch(url, {
+            method,
+            headers,
+            body: body ? body : undefined
+        });
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`API调用失败 ${response.status}: ${errText}`);
+        }
+        return await response.json();
+    }
+
+    // ========== 获取设备影子/属性 ==========
+    async function fetchDeviceData() {
         try {
-            const data = typeof payload === "string" ? JSON.parse(payload) : payload;
-            // 华为云属性上报格式: { "services": [ { "service_id": "...", "properties": {...} } ] }
-            if (data.services && Array.isArray(data.services)) {
-                for (let svc of data.services) {
-                    const props = svc.properties;
-                    if (props) {
-                        if (props.temperature !== undefined) tempSpan.innerText = props.temperature;
-                        if (props.humidity !== undefined) humiSpan.innerText = props.humidity;
-                        if (props.soil !== undefined) soilSpan.innerText = props.soil;
-                        if (props.motion !== undefined) motionSpan.innerText = props.motion === 1 ? "检测到人" : "无人";
-                        if (props.LightStatus !== undefined) {
-                            let lightMode = props.LightStatus;
-                            if (lightMode === 0) lightStatusSpan.innerText = "关闭";
-                            else if (lightMode === 1) lightStatusSpan.innerText = "常亮";
-                            else if (lightMode === 2) lightStatusSpan.innerText = "闪烁";
-                            else lightStatusSpan.innerText = lightMode;
-                        }
-                        if (props.Alarm !== undefined) alarmDisplaySpan.innerText = props.Alarm === 1 ? "启用" : "禁用";
-                        if (props.System !== undefined) systemDisplaySpan.innerText = props.System === 1 ? "启用" : "停用";
-                    }
-                }
-            }
-        } catch (e) {
-            console.warn("解析上报数据失败", e);
+            const data = await callHuaweiAPI('GET', '/shadow');
+            const reported = data.shadow?.[0]?.reported?.properties || {};
+            updateUI(reported);
+            updateConnectionStatus(true);
+        } catch (err) {
+            console.error('获取设备数据失败', err);
+            updateConnectionStatus(false);
+            showToast('获取数据失败: ' + err.message);
         }
     }
-    
-    // 发送控制指令到设备（使用消息下发主题，兼容ESP32 callback）
-    function sendControlCommand(lightStatus, alarm, system) {
-        if (!mqttClient || !mqttClient.connected) {
-            console.warn("MQTT未连接，无法发送指令");
-            alert("MQTT未连接，请检查网络或刷新页面重试");
-            return false;
+
+    // ========== 下发设备命令 ==========
+    async function sendCommand(paras) {
+        const commandBody = {
+            service_id: '亮少',
+            command_name: 'control',
+            paras: paras
+        };
+        try {
+            const result = await callHuaweiAPI('POST', '/commands', JSON.stringify(commandBody));
+            console.log('命令下发成功', result);
+            showToast('指令已发送');
+            setTimeout(() => fetchDeviceData(), 500);
+        } catch (err) {
+            console.error('命令下发失败', err);
+            showToast('指令发送失败: ' + err.message);
         }
-        
-        // 构建符合ESP32解析格式的消息（嵌套 content 字段）
-        // ESP32 代码会递归解析，支持字符串或对象形式，这里使用对象形式更简洁
-        const commandPayload = {
-            content: {
-                LightStatus: lightStatus,
-                Alarm: alarm === 1 ? true : false,
-                System: system === 1 ? true : false
-            }
-        };
-        
-        const payloadStr = JSON.stringify(commandPayload);
-        console.log("发送指令 ->", MESSAGES_DOWN_TOPIC, payloadStr);
-        mqttClient.publish(MESSAGES_DOWN_TOPIC, payloadStr, { qos: 1 }, (err) => {
-            if (err) console.error("发布失败", err);
-            else console.log("指令已下发");
-        });
-        return true;
     }
-    
-    // 便捷控制函数
-    function setLightMode(mode) {
-        // mode: 0关 1常亮 2闪烁
-        sendControlCommand(mode, undefined, undefined);
+
+    // ========== UI 更新 ==========
+    function updateUI(reported) {
+        document.getElementById('temp').innerText = reported.temperature ?? '--';
+        document.getElementById('hum').innerText = reported.humidity ?? '--';
+        document.getElementById('soil').innerText = reported.soil ?? '--';
+        const motionVal = reported.motion === 1 ? '检测到人' : (reported.motion === 0 ? '无人' : '--');
+        document.getElementById('motion').innerHTML = motionVal;
+
+        const light = reported.LightStatus;
+        const lightText = light === 0 ? '关闭' : (light === 1 ? '常亮' : (light === 2 ? '闪烁' : '未知'));
+        document.getElementById('lightStatusBadge').innerText = lightText;
+
+        const alarm = reported.Alarm;
+        const alarmText = alarm === 1 ? '已启用' : (alarm === 0 ? '已禁用' : '未知');
+        document.getElementById('alarmBadge').innerText = alarmText;
+
+        const system = reported.System;
+        const systemText = system === 1 ? '运行中' : (system === 0 ? '已停止' : '未知');
+        document.getElementById('systemBadge').innerText = systemText;
     }
-    function setAlarm(enable) {
-        // enable: 1开 0关
-        sendControlCommand(undefined, enable ? 1 : 0, undefined);
+
+    function updateConnectionStatus(online) {
+        const led = document.getElementById('connStatusLed');
+        const textSpan = document.getElementById('connStatusText');
+        if (online) {
+            led.className = 'status-led online';
+            textSpan.innerText = '设备在线';
+        } else {
+            led.className = 'status-led offline';
+            textSpan.innerText = '离线 / 获取失败';
+        }
     }
-    function setSystem(enable) {
-        sendControlCommand(undefined, undefined, enable ? 1 : 0);
+
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.innerText = msg;
+        toast.style.opacity = '1';
+        setTimeout(() => {
+            toast.style.opacity = '0';
+        }, 2000);
     }
-    
-    // 初始化MQTT连接
-    function initMqtt() {
-        const options = {
-            clientId: CLIENT_ID,
-            username: USERNAME,
-            password: PASSWORD,
-            keepalive: 60,
-            clean: true,
-            reconnectPeriod: 3000,
-            connectTimeout: 10000,
-            protocolId: "MQTT",
-            protocolVersion: 4,
-        };
-        
-        mqttClient = mqtt.connect(MQTT_URL, options);
-        
-        mqttClient.on("connect", () => {
-            console.log("MQTT WebSocket 连接成功");
-            updateMqttStatus(true);
-            // 订阅设备属性上报主题，获取实时数据
-            mqttClient.subscribe(PROPERTY_REPORT_TOPIC, { qos: 1 }, (err) => {
-                if (!err) console.log(`已订阅: ${PROPERTY_REPORT_TOPIC}`);
-                else console.error("订阅失败", err);
-            });
-            // 可选订阅命令主题（用于调试，不影响主功能）
-            mqttClient.subscribe(COMMANDS_SUB_TOPIC, { qos: 1 });
-        });
-        
-        mqttClient.on("message", (topic, message) => {
-            const payloadStr = message.toString();
-            console.log(`收到消息 [${topic}]:`, payloadStr);
-            
-            // 处理属性上报
-            if (topic === PROPERTY_REPORT_TOPIC) {
-                parseAndUpdateReport(payloadStr);
-            }
-            // 如有需要，也可以处理其他下行消息（如命令响应）
-        });
-        
-        mqttClient.on("error", (err) => {
-            console.error("MQTT 错误", err);
-            updateMqttStatus(false);
-        });
-        
-        mqttClient.on("close", () => {
-            console.log("MQTT 连接关闭");
-            updateMqttStatus(false);
-        });
-        
-        mqttClient.on("reconnect", () => {
-            console.log("MQTT 重连中...");
-            updateMqttStatus(false);
-        });
-    }
-    
-    // 绑定按钮事件
+
+    // ========== 事件绑定 ==========
     function bindEvents() {
-        btnLightOff.addEventListener("click", () => setLightMode(0));
-        btnLightOn.addEventListener("click", () => setLightMode(1));
-        btnLightBlink.addEventListener("click", () => setLightMode(2));
-        
-        btnAlarmOff.addEventListener("click", () => setAlarm(false));
-        btnAlarmOn.addEventListener("click", () => setAlarm(true));
-        
-        btnSystemOff.addEventListener("click", () => setSystem(false));
-        btnSystemOn.addEventListener("click", () => setSystem(true));
+        document.querySelectorAll('[data-light]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = parseInt(btn.getAttribute('data-light'));
+                sendCommand({ LightStatus: val });
+            });
+        });
+        document.querySelectorAll('[data-alarm]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = parseInt(btn.getAttribute('data-alarm'));
+                sendCommand({ Alarm: val });
+            });
+        });
+        document.querySelectorAll('[data-system]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = parseInt(btn.getAttribute('data-system'));
+                sendCommand({ System: val });
+            });
+        });
     }
-    
-    // 页面初始化
-    function init() {
+
+    // ========== 轮询 ==========
+    let intervalId = null;
+    function startPolling() {
+        if (intervalId) clearInterval(intervalId);
+        fetchDeviceData();
+        intervalId = setInterval(fetchDeviceData, 5000);
+    }
+
+    // ========== 初始化 ==========
+    window.addEventListener('load', () => {
         bindEvents();
-        initMqtt();
-    }
-    
-    init();
+        startPolling();
+    });
 </script>
 </body>
 </html>
